@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>植物大战僵尸 · 网页版</title>
   <style>
     :root {
@@ -23,6 +23,7 @@
     body {
       margin: 0;
       min-height: 100vh;
+      overscroll-behavior: none;
       background:
         radial-gradient(circle at 20% 15%, rgba(255, 241, 170, .18), transparent 32rem),
         radial-gradient(circle at 80% 20%, rgba(140, 201, 92, .18), transparent 34rem),
@@ -352,6 +353,167 @@
     .hidden {
       display: none !important;
     }
+
+    /* ===== 移动端适配 ===== */
+    @media (max-width: 760px) {
+      body {
+        padding: 6px;
+        align-items: flex-start;
+      }
+
+      .game-shell {
+        width: 100%;
+        border-radius: 10px;
+        border-width: 2px;
+      }
+
+      .topbar {
+        flex-wrap: wrap;
+        gap: 8px;
+        padding: 8px 10px;
+        min-height: 0;
+      }
+
+      .sun-counter {
+        min-width: 96px;
+        height: 44px;
+        font-size: 20px;
+        padding: 0 10px;
+        gap: 6px;
+      }
+
+      .sun-icon {
+        width: 26px;
+        height: 26px;
+      }
+
+      .tool-buttons {
+        flex-direction: row;
+        margin-left: auto;
+        gap: 6px;
+      }
+
+      .tool-row {
+        gap: 6px;
+      }
+
+      .tool-btn {
+        width: 54px;
+        height: 42px;
+      }
+
+      #musicBtn,
+      #waveLabel {
+        height: 42px;
+        padding: 0 8px;
+        font-size: 12px;
+      }
+
+      .seed-bank {
+        order: 3;
+        flex-basis: 100%;
+        gap: 6px;
+        padding: 2px 0 6px;
+      }
+
+      .seed-card {
+        width: 62px;
+        height: 62px;
+        border-radius: 8px;
+      }
+
+      .card-cost {
+        font-size: 13px;
+      }
+
+      .card-name {
+        font-size: 10px;
+        max-width: 38px;
+      }
+
+      .canvas-wrap {
+        padding: 4px;
+      }
+
+      canvas {
+        border-radius: 6px;
+      }
+
+      .overlay {
+        inset: 4px;
+        border-radius: 6px;
+      }
+
+      .overlay-panel {
+        padding: 18px 14px;
+        max-width: 92vw;
+      }
+
+      .overlay-panel h1 {
+        font-size: 26px;
+      }
+
+      .overlay-panel h2 {
+        font-size: 24px;
+      }
+
+      .overlay-panel p {
+        font-size: 13px;
+        line-height: 1.6;
+      }
+
+      .big-btn {
+        font-size: 18px;
+        padding: 10px 22px;
+      }
+
+      .wave-msg {
+        font-size: 18px;
+        padding: 8px 16px;
+      }
+    }
+
+    /* 矮屏横屏（如手机横放）：压缩顶栏，保证画布可见 */
+    @media (max-height: 480px) and (orientation: landscape) {
+      body {
+        padding: 4px;
+      }
+
+      .topbar {
+        padding: 4px 8px;
+        gap: 6px;
+      }
+
+      .seed-card {
+        width: 52px;
+        height: 52px;
+      }
+
+      .card-cost {
+        font-size: 11px;
+      }
+
+      .card-name {
+        font-size: 9px;
+      }
+
+      .sun-counter {
+        height: 38px;
+        min-width: 84px;
+        font-size: 17px;
+      }
+
+      .tool-btn {
+        width: 46px;
+        height: 36px;
+      }
+
+      #musicBtn,
+      #waveLabel {
+        height: 36px;
+        font-size: 11px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -416,6 +578,15 @@
           return this;
         };
       }
+
+      // 逻辑分辨率固定 1100×620；物理像素按设备像素比放大（高清屏更清晰）
+      const GAME_W = 1100;
+      const GAME_H = 620;
+      const DPR = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = GAME_W * DPR;
+      canvas.height = GAME_H * DPR;
+      ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+
       const seedBankEl = document.getElementById("seedBank");
       const sunAmountEl = document.getElementById("sunAmount");
       const shovelBtn = document.getElementById("shovelBtn");
@@ -1111,7 +1282,7 @@
           id: nextId++,
           type,
           row,
-          x: canvas.width + 70 + Math.random() * 70,
+          x: GAME_W + 70 + Math.random() * 70,
           y: plantRowY(row) + (Math.random() * 8 - 4),
           hp: def.hp,
           maxHp: def.hp,
@@ -1518,8 +1689,8 @@
 
       function pointerPos(e) {
         const rect = canvas.getBoundingClientRect();
-        const scaleX = canvas.width / rect.width;
-        const scaleY = canvas.height / rect.height;
+        const scaleX = GAME_W / rect.width;
+        const scaleY = GAME_H / rect.height;
         const clientX = e.touches ? e.touches[0].clientX : e.clientX;
         const clientY = e.touches ? e.touches[0].clientY : e.clientY;
         return {
@@ -1731,7 +1902,7 @@
           if (hit) pr.dead = true;
         }
         for (let i = projectiles.length - 1; i >= 0; i--) {
-          if (projectiles[i].dead || projectiles[i].x > canvas.width + 40) {
+          if (projectiles[i].dead || projectiles[i].x > GAME_W + 40) {
             projectiles.splice(i, 1);
           }
         }
@@ -1884,7 +2055,7 @@
               killZombie(z, 14);
             }
           }
-          if (mower.x > canvas.width + 90) {
+          if (mower.x > GAME_W + 90) {
             mower.moving = false;
           }
         }
@@ -1923,7 +2094,7 @@
       }
 
       function drawLawn() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.clearRect(0, 0, GAME_W, GAME_H);
         const boardBottom = rowTopY(ROWS);
 
         // ===== 天空与远景 =====
@@ -1932,10 +2103,10 @@
         sky.addColorStop(.62, "#c9ecff");
         sky.addColorStop(1, "#eaf8d8");
         ctx.fillStyle = sky;
-        ctx.fillRect(0, 0, canvas.width, BOARD_Y);
+        ctx.fillRect(0, 0, GAME_W, BOARD_Y);
 
         // 太阳与光晕
-        const sunX = canvas.width - 210;
+        const sunX = GAME_W - 210;
         const sunY = 36;
         const sunGlow = ctx.createRadialGradient(sunX, sunY, 6, sunX, sunY, 92);
         sunGlow.addColorStop(0, "rgba(255,246,200,.95)");
@@ -1955,7 +2126,7 @@
         // 漂移的云
         ctx.fillStyle = "rgba(255,255,255,.85)";
         for (const c of CLOUDS) {
-          const cx = ((c.x + elapsed * c.speed) % (canvas.width + 220)) - 110;
+          const cx = ((c.x + elapsed * c.speed) % (GAME_W + 220)) - 110;
           ctx.beginPath();
           ctx.ellipse(cx, c.y, 34, 13, 0, 0, Math.PI * 2);
           ctx.ellipse(cx + 24, c.y - 7, 22, 10, 0, 0, Math.PI * 2);
@@ -1967,16 +2138,16 @@
         ctx.fillStyle = "rgba(96, 156, 84, .55)";
         ctx.beginPath();
         ctx.moveTo(0, BOARD_Y - 2);
-        for (let x = 0; x <= canvas.width; x += 40) {
+        for (let x = 0; x <= GAME_W; x += 40) {
           ctx.lineTo(x, BOARD_Y - 14 - Math.sin(x * .011 + 1) * 12 - Math.sin(x * .037) * 5);
         }
-        ctx.lineTo(canvas.width, BOARD_Y);
+        ctx.lineTo(GAME_W, BOARD_Y);
         ctx.closePath();
         ctx.fill();
 
         // 远景树篱
         ctx.fillStyle = "rgba(52, 108, 42, .5)";
-        for (let x = 16; x < canvas.width; x += 74) {
+        for (let x = 16; x < GAME_W; x += 74) {
           ctx.beginPath();
           ctx.arc(x, BOARD_Y - 6, 20 + (x % 3) * 4, 0, Math.PI * 2);
           ctx.fill();
@@ -2086,15 +2257,15 @@
         ctx.fillRect(BOARD_X, BOARD_Y, COLS * CELL_W, boardBottom - BOARD_Y);
 
         // 右侧危险路
-        const road = ctx.createLinearGradient(canvas.width - 34, 0, canvas.width, 0);
+        const road = ctx.createLinearGradient(GAME_W - 34, 0, GAME_W, 0);
         road.addColorStop(0, "rgba(0,0,0,.12)");
         road.addColorStop(1, "rgba(0,0,0,.5)");
         ctx.fillStyle = road;
-        ctx.fillRect(canvas.width - 34, BOARD_Y, 34, boardBottom - BOARD_Y);
+        ctx.fillRect(GAME_W - 34, BOARD_Y, 34, boardBottom - BOARD_Y);
         ctx.fillStyle = "rgba(255,255,255,.14)";
         for (let row = 0; row < ROWS; row++) {
           const yTop = rowTopY(row);
-          ctx.fillRect(canvas.width - 28, yTop + 16, 5, rowH(row) - 32);
+          ctx.fillRect(GAME_W - 28, yTop + 16, 5, rowH(row) - 32);
         }
 
         // 割草机
@@ -2104,11 +2275,11 @@
         }
 
         // 暗角（电影感）
-        const vig = ctx.createRadialGradient(canvas.width / 2, canvas.height / 2, canvas.height * .55, canvas.width / 2, canvas.height / 2, canvas.height * .95);
+        const vig = ctx.createRadialGradient(GAME_W / 2, GAME_H / 2, GAME_H * .55, GAME_W / 2, GAME_H / 2, GAME_H * .95);
         vig.addColorStop(0, "rgba(0,0,0,0)");
         vig.addColorStop(1, "rgba(0,0,0,.18)");
         ctx.fillStyle = vig;
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillRect(0, 0, GAME_W, GAME_H);
       }
 
       function drawMower(mower) {
@@ -3747,7 +3918,7 @@
         if (selectedTool === "shovel") hint = "点击要铲除的植物";
         else if (selectedTool === "energy") hint = "点击要充能的植物";
         else hint = `选择草坪种植：${PLANT_DEFS[selectedTool].name}`;
-        ctx.fillText(hint, canvas.width / 2, 34);
+        ctx.fillText(hint, GAME_W / 2, 34);
       }
 
       function render() {
@@ -3764,7 +3935,7 @@
 
         // 底部战况
         ctx.fillStyle = "rgba(22, 34, 18, .68)";
-        ctx.fillRect(0, canvas.height - 34, canvas.width, 34);
+        ctx.fillRect(0, GAME_H - 34, GAME_W, 34);
         ctx.fillStyle = "#ffe8a3";
         ctx.font = "800 15px 'Microsoft YaHei'";
         ctx.textAlign = "left";
@@ -3773,12 +3944,12 @@
           : 0);
         const mins = Math.floor(elapsed / 60);
         const secs = Math.floor(elapsed % 60);
-        ctx.fillText(`阳光 ${Math.floor(sun)}   |   场上僵尸 ${zombies.length}   |   剩余敌人 ${remaining}   |   时间 ${mins}:${secs < 10 ? "0" + secs : secs}`, 14, canvas.height - 11);
+        ctx.fillText(`阳光 ${Math.floor(sun)}   |   场上僵尸 ${zombies.length}   |   剩余敌人 ${remaining}   |   时间 ${mins}:${secs < 10 ? "0" + secs : secs}`, 14, GAME_H - 11);
 
         if (!energyReady && energyUsed) {
           ctx.textAlign = "right";
           ctx.fillStyle = "#8be6ff";
-          ctx.fillText("能量豆已消耗，本关只能使用一次", canvas.width - 14, canvas.height - 11);
+          ctx.fillText("能量豆已消耗，本关只能使用一次", GAME_W - 14, GAME_H - 11);
         }
       }
 
