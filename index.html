@@ -27,9 +27,9 @@
       overflow-x: hidden;
       overscroll-behavior: none;
       background:
-        radial-gradient(circle at 20% 15%, rgba(255, 241, 170, .18), transparent 32rem),
-        radial-gradient(circle at 80% 20%, rgba(140, 201, 92, .18), transparent 34rem),
-        linear-gradient(180deg, #1c3a1f 0%, #173419 55%, #0f2813 100%);
+        radial-gradient(circle at 20% 15%, rgba(255, 241, 170, .22), transparent 32rem),
+        radial-gradient(circle at 80% 20%, rgba(160, 210, 120, .14), transparent 34rem),
+        linear-gradient(180deg, #8a6a3e 0%, #6b4f2a 55%, #4f3a1e 100%);
       color: #fff;
       font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
       display: flex;
@@ -42,7 +42,7 @@
     .game-shell {
       width: min(1180px, 96vw);
       margin: auto;
-      background: rgba(9, 24, 11, .72);
+      background: rgba(60, 42, 22, .82);
       border: 3px solid #4c3b22;
       border-radius: 18px;
       box-shadow: 0 24px 60px rgba(0, 0, 0, .55);
@@ -2309,10 +2309,10 @@
           drawMower(mower);
         }
 
-        // 暗角（电影感）
-        const vig = ctx.createRadialGradient(GAME_W / 2, GAME_H / 2, GAME_H * .55, GAME_W / 2, GAME_H / 2, GAME_H * .95);
+        // 轻微暗角（原版明亮，仅收边）
+        const vig = ctx.createRadialGradient(GAME_W / 2, GAME_H / 2, GAME_H * .6, GAME_W / 2, GAME_H / 2, GAME_H * 1.0);
         vig.addColorStop(0, "rgba(0,0,0,0)");
-        vig.addColorStop(1, "rgba(0,0,0,.18)");
+        vig.addColorStop(1, "rgba(0,0,0,.06)");
         ctx.fillStyle = vig;
         ctx.fillRect(0, 0, GAME_W, GAME_H);
       }
@@ -2790,87 +2790,63 @@
         }
 
         if (p.type === "sunflower") {
-          // 茎（S 形渐变）
-          const stemG = ctx.createLinearGradient(-4, 0, 4, 0);
-          stemG.addColorStop(0, "#2e7d2b");
-          stemG.addColorStop(.5, "#55a83f");
-          stemG.addColorStop(1, "#3a8a2c");
-          ctx.strokeStyle = stemG;
-          ctx.lineWidth = 9;
+          // 茎 + 两片对称叶（原版更挺直、颜色更亮）
+          ctx.strokeStyle = "#4a9a2a";
+          ctx.lineWidth = 8;
           ctx.lineCap = "round";
           ctx.beginPath();
-          ctx.moveTo(0, 8);
-          ctx.quadraticCurveTo(-2, 20, 1, 34);
+          ctx.moveTo(0, 10);
+          ctx.quadraticCurveTo(-1, 22, 0, 34);
           ctx.stroke();
-          plantLeaf(-10, 23, -.9, 13, "#5cb545");
-          plantLeaf(11, 18, .9, 13, "#5cb545");
+          plantLeaf(-10, 25, -.9, 13, "#5cb545");
+          plantLeaf(10, 21, .9, 13, "#5cb545");
 
-          const bobY = -8 + Math.sin(now * .0021 + p.bob) * 2.2;
+          const bobY = -10 + Math.sin(now * .0021 + p.bob) * 2.2;
           ctx.save();
           ctx.translate(0, bobY);
 
-          // 花瓣：双层，每片渐变 + 描边 + 高光
-          for (let layer = 0; layer < 2; layer++) {
-            const count = layer === 0 ? 14 : 10;
-            const radius = layer === 0 ? 19 : 16;
-            const petalLen = layer === 0 ? 15 : 12;
-            for (let i = 0; i < count; i++) {
-              const a = (i / count) * Math.PI * 2 + (layer === 0 ? Math.PI / count : 0);
-              ctx.save();
-              ctx.translate(Math.cos(a) * radius, Math.sin(a) * radius);
-              ctx.rotate(a + Math.PI / 2);
-              const pg = ctx.createLinearGradient(0, -petalLen, 0, petalLen);
-              pg.addColorStop(0, "#fff3ae");
-              pg.addColorStop(.45, "#ffd34e");
-              pg.addColorStop(1, "#dd9d20");
-              ctx.fillStyle = pg;
-              ctx.strokeStyle = "#b97d15";
-              ctx.lineWidth = 1.2;
-              ctx.beginPath();
-              ctx.ellipse(0, 0, 6.5, petalLen, 0, 0, Math.PI * 2);
-              ctx.fill();
-              ctx.stroke();
-              ctx.fillStyle = "rgba(255,255,255,.35)";
-              ctx.beginPath();
-              ctx.ellipse(1, -petalLen * .35, 2.2, petalLen * .3, 0, 0, Math.PI * 2);
-              ctx.fill();
-              ctx.restore();
-            }
+          // 花瓣：单层 12 片圆润花瓣，亮黄 + 深描边
+          for (let i = 0; i < 12; i++) {
+            const a = (i / 12) * Math.PI * 2;
+            ctx.save();
+            ctx.translate(Math.cos(a) * 21, Math.sin(a) * 21);
+            ctx.rotate(a);
+            ctx.fillStyle = "#f7d64a";
+            ctx.strokeStyle = "#c8931c";
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.ellipse(0, 0, 10, 6.5, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            ctx.restore();
           }
 
-          // 花盘：放射渐变 + 种子纹理 + 高光
-          const discG = ctx.createRadialGradient(-4, -5, 3, 0, 0, 18);
-          discG.addColorStop(0, "#e2a53c");
-          discG.addColorStop(.55, "#a9641f");
-          discG.addColorStop(1, "#5e3212");
+          // 花盘：深棕 + 左上高光 + 笑脸
+          const discG = ctx.createRadialGradient(-5, -6, 2, 0, 0, 18);
+          discG.addColorStop(0, "#c9822c");
+          discG.addColorStop(.6, "#8a5a20");
+          discG.addColorStop(1, "#5a3812");
           ctx.fillStyle = discG;
-          ctx.strokeStyle = "#4a2610";
-          ctx.lineWidth = 2.4;
+          ctx.strokeStyle = "#3f2810";
+          ctx.lineWidth = 2.6;
           ctx.beginPath();
           ctx.arc(0, 0, 17, 0, Math.PI * 2);
           ctx.fill();
           ctx.stroke();
-          ctx.fillStyle = "rgba(70,38,10,.5)";
-          for (let i = 0; i < 14; i++) {
-            const a = (i / 14) * Math.PI * 2;
-            ctx.beginPath();
-            ctx.arc(Math.cos(a) * 12.5, Math.sin(a) * 12.5, 1.1, 0, Math.PI * 2);
-            ctx.fill();
-          }
-          ctx.fillStyle = "rgba(255,255,255,.22)";
+          ctx.fillStyle = "rgba(255,255,255,.25)";
           ctx.beginPath();
           ctx.ellipse(-5, -6, 6, 4, -.5, 0, Math.PI * 2);
           ctx.fill();
 
           // 表情
-          plantFace(-6, -3, 5, -3, 3.4, 7, 6.5, "happy", "black");
+          plantFace(-6, -2, 5, -2, 3.6, 6, 6, "happy", "black");
           ctx.restore();
         } else if (p.type === "peashooter" || p.type === "snowpea" || p.type === "repeater") {
           const ice = p.type === "snowpea";
           const rep = p.type === "repeater";
           const C = {
-            head: rep ? "#7ac74f" : ice ? "#7cc9f2" : "#65b945",
-            headL: rep ? "#d9f7ae" : ice ? "#e6f9ff" : "#b8e97c",
+            head: rep ? "#7ac74f" : ice ? "#8fd8ff" : "#6fbf3f",
+            headL: rep ? "#d9f7ae" : ice ? "#e6f9ff" : "#c4ef8d",
             headD: rep ? "#3f8f32" : ice ? "#2e7f77" : "#2e6f26",
             stem: rep ? "#5fb03f" : ice ? "#4aa4b9" : "#4f9b3a",
             stemD: rep ? "#3f8a2e" : ice ? "#2f7e77" : "#2f7d2c",
@@ -2896,7 +2872,7 @@
           // 头部（带射击后坐）
           ctx.save();
           ctx.translate(-(p.recoil || 0) * 3, 0);
-          ball(0, 0, 21, C.headL, C.head, C.headD, C.headD, 2.4);
+          ball(0, 0, 22, C.headL, C.head, C.headD, C.headD, 3);
 
           // 头顶小芽
           ctx.strokeStyle = C.stem;
@@ -3523,9 +3499,9 @@
 
         // 身体（西装外套，下摆破烂锯齿）
         const bodyG3 = ctx.createLinearGradient(-19, -6, 19, 26);
-        bodyG3.addColorStop(0, "#8b99a3");
-        bodyG3.addColorStop(.5, "#5c6b75");
-        bodyG3.addColorStop(1, "#333e47");
+        bodyG3.addColorStop(0, "#8a6a44");
+        bodyG3.addColorStop(.5, "#5f4528");
+        bodyG3.addColorStop(1, "#3a2a18");
         ctx.fillStyle = bodyG3;
         ctx.strokeStyle = "#1f2830";
         ctx.lineWidth = 2.6;
@@ -3540,13 +3516,13 @@
         ctx.fill();
         ctx.stroke();
         // 外套翻领
-        ctx.fillStyle = "#414d56";
+        ctx.fillStyle = "#4a3a24";
         ctx.beginPath();
         ctx.moveTo(-8, -6); ctx.lineTo(-2, 6); ctx.lineTo(0, -6);
         ctx.moveTo(8, -6); ctx.lineTo(2, 6); ctx.lineTo(0, -6);
         ctx.fill();
         // 衬衫（脏白）
-        ctx.fillStyle = "#c2ccd2";
+        ctx.fillStyle = "#ded8c8";
         ctx.beginPath();
         ctx.moveTo(-7, -5); ctx.lineTo(0, 4); ctx.lineTo(7, -5);
         ctx.lineTo(10, 26); ctx.lineTo(-10, 26);
@@ -3574,8 +3550,8 @@
         // 手臂（前伸 + 袖子渐变 + 手指）
         const armReach = z.eating ? eatReach : sway;
         const armG2 = ctx.createLinearGradient(0, 0, 0, 20);
-        armG2.addColorStop(0, "#5c6b75");
-        armG2.addColorStop(1, "#394650");
+        armG2.addColorStop(0, "#8a6a44");
+        armG2.addColorStop(1, "#4a3420");
         ctx.strokeStyle = armG2;
         ctx.lineWidth = 10;
         ctx.beginPath();
@@ -3616,9 +3592,9 @@
 
         // 头（灰绿皮肤，PvZ 经典圆头）
         const headG2 = ctx.createRadialGradient(-5, -38, 4, 0, -30, 24);
-        headG2.addColorStop(0, "#cdd8c4");
-        headG2.addColorStop(.55, "#a9b8a0");
-        headG2.addColorStop(1, "#75866e");
+        headG2.addColorStop(0, "#cfd8b8");
+        headG2.addColorStop(.55, "#a8b894");
+        headG2.addColorStop(1, "#6f7f5e");
         ctx.fillStyle = headG2;
         ctx.strokeStyle = "#41504a";
         ctx.lineWidth = 2.6;
