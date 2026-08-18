@@ -2858,142 +2858,179 @@
           const ice = p.type === "snowpea";
           const rep = p.type === "repeater";
           const C = {
-            head: rep ? "#7ac74f" : ice ? "#8fd8ff" : "#90c828",
-            headL: rep ? "#d9f7ae" : ice ? "#e6f9ff" : "#d0f060",
-            headD: rep ? "#3f8f32" : ice ? "#2e7f77" : "#005800",
-            stem: rep ? "#5fb03f" : ice ? "#4aa4b9" : "#5f9830",
-            stemD: rep ? "#3f8a2e" : ice ? "#2f7e77" : "#386800",
-            barrel: rep ? "#67b043" : ice ? "#5bc5e2" : "#609800",
-            barrelD: rep ? "#4b9637" : ice ? "#2f8ea8" : "#306000",
-            eye: ice ? "#0c3f55" : "#000000"
+            head: rep ? "#88c040" : ice ? "#78c8ec" : "#90d030",
+            headL: rep ? "#d8f090" : ice ? "#e0f8ff" : "#d0f060",
+            headD: rep ? "#389000" : ice ? "#2e88a8" : "#60a000",
+            outline: rep ? "#1f6a00" : ice ? "#1e6a70" : "#005900",
+            tube: rep ? "#7cb838" : ice ? "#5cb0d8" : "#93cf2f",
+            tubeL: rep ? "#d0ec80" : ice ? "#c8f0ff" : "#e9fe75",
+            tubeD: rep ? "#489000" : ice ? "#3888a8" : "#60a000",
+            stem: rep ? "#7cb838" : ice ? "#5cb0d8" : "#93cf2f",
+            leaf: rep ? "#5cb020" : ice ? "#48a0c8" : "#66cc00"
           };
-          // 茎：微曲、带明暗
+
+          // ===== 茎（微曲、明暗）=====
           const stemG2 = ctx.createLinearGradient(-4, 0, 4, 0);
-          stemG2.addColorStop(0, C.stemD);
-          stemG2.addColorStop(.5, C.stem);
-          stemG2.addColorStop(1, C.stemD);
+          stemG2.addColorStop(0, C.outline);
+          stemG2.addColorStop(.35, C.stem);
+          stemG2.addColorStop(1, C.outline);
           ctx.strokeStyle = stemG2;
-          ctx.lineWidth = 8;
+          ctx.lineWidth = 6.5;
           ctx.lineCap = "round";
           ctx.beginPath();
-          ctx.moveTo(0, 9);
-          ctx.quadraticCurveTo(2, 21, 0, 34);
+          ctx.moveTo(0, 15);
+          ctx.quadraticCurveTo(1.5, 25, 0, 33);
           ctx.stroke();
-          // 底部三片叶子（左、右、中间下指，参考原版）
-          plantLeaf(-11, 24, -.9, 13, C.stem);
-          plantLeaf(11, 22, .9, 13, C.stem);
-          plantLeaf(0, 29, 1.57, 11, C.stem);
 
-          // 头部（带射击后坐）
+          // ===== 底部两片大叶（参考图：左右各一、向下外展、#66CC00 配深绿描边）=====
+          const leafG = ctx.createLinearGradient(-8, 0, 8, 0);
+          leafG.addColorStop(0, C.outline);
+          leafG.addColorStop(.3, C.leaf);
+          leafG.addColorStop(1, C.outline);
+          ctx.fillStyle = leafG;
+          ctx.strokeStyle = C.outline;
+          ctx.lineWidth = 1.8;
+          ctx.beginPath();
+          ctx.ellipse(-7, 30, 8, 5, -.6, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.ellipse(11, 30, 9, 5.5, .6, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+          // 叶脉
+          ctx.strokeStyle = "rgba(255,255,255,.28)";
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(-12, 27);
+          ctx.quadraticCurveTo(-6, 31, 0, 32);
+          ctx.moveTo(5, 33);
+          ctx.quadraticCurveTo(12, 31, 18, 27);
+          ctx.stroke();
+
+          // ===== 头部（带射击后坐）=====
           ctx.save();
           ctx.translate(-(p.recoil || 0) * 3, 0);
 
-          // 头顶单叶（参考图特征：从头顶冒出的小芽）
-          ctx.strokeStyle = C.stem;
-          ctx.lineWidth = 3.4;
+          // 头顶芽（深绿小茎+叶，位于头顶偏右）
+          ctx.strokeStyle = C.outline;
+          ctx.lineWidth = 2.6;
           ctx.lineCap = "round";
           ctx.beginPath();
-          ctx.moveTo(1, -19);
-          ctx.quadraticCurveTo(5, -26, 8, -30);
+          ctx.moveTo(6, -15);
+          ctx.quadraticCurveTo(8, -21, 10, -24);
           ctx.stroke();
-          ctx.fillStyle = C.stem;
-          ctx.strokeStyle = C.stemD;
-          ctx.lineWidth = 1.4;
+          ctx.fillStyle = C.outline;
           ctx.beginPath();
-          ctx.ellipse(9.5, -31, 5.5, 3.2, .5, 0, Math.PI * 2);
+          ctx.ellipse(11, -25.5, 3.4, 2, .5, 0, Math.PI * 2);
           ctx.fill();
-          ctx.stroke();
 
-          // 经典圆头：正圆 + 粗深绿描边
-          const headG = ctx.createRadialGradient(-7, -8, 4, 0, -1, 25);
+          // 宽扁椭圆头（参考图比例 290×200 ≈ 1.45:1）
+          const headG = ctx.createRadialGradient(-9, -7, 3, 0, 0, 27);
           headG.addColorStop(0, C.headL);
-          headG.addColorStop(.55, C.head);
+          headG.addColorStop(.5, C.head);
           headG.addColorStop(1, C.headD);
           ctx.fillStyle = headG;
-          ctx.strokeStyle = C.headD;
-          ctx.lineWidth = 3.2;
+          ctx.strokeStyle = C.outline;
+          ctx.lineWidth = 2.8;
           ctx.beginPath();
-          ctx.arc(0, 0, 22, 0, Math.PI * 2);
+          ctx.ellipse(0, 0, 24, 16.5, 0, 0, Math.PI * 2);
           ctx.fill();
           ctx.stroke();
-          // 下巴阴影
-          ctx.fillStyle = "rgba(0,0,0,.12)";
+
+          // 左上大柔光斑（参考图特征：从亮黄绿渐变到白）
+          const glow = ctx.createRadialGradient(-9, -3, 1, -8, -2, 12);
+          glow.addColorStop(0, "rgba(255,255,255,.95)");
+          glow.addColorStop(.45, "rgba(252,254,240,.75)");
+          glow.addColorStop(.7, "rgba(233,254,117,.4)");
+          glow.addColorStop(1, "rgba(233,254,117,0)");
+          ctx.fillStyle = glow;
           ctx.beginPath();
-          ctx.ellipse(3, 12, 12, 5, .1, 0, Math.PI * 2);
-          ctx.fill();
-          // 左上高光
-          ctx.fillStyle = "rgba(255,255,255,.35)";
-          ctx.beginPath();
-          ctx.ellipse(-9, -11, 6, 4.5, -.5, 0, Math.PI * 2);
+          ctx.ellipse(-7, -2, 10, 8, 0, 0, Math.PI * 2);
           ctx.fill();
 
-          // 嘴巴式枪管：圆润管身 + 端部开口（原版"嘴"）
+          // 左眼：黑瞳（靠左）+ 白色眼白（靠右）——参考图的经典"斗鸡眼"
+          ctx.fillStyle = "#000000";
+          ctx.strokeStyle = C.outline;
+          ctx.lineWidth = 1.2;
+          ctx.beginPath();
+          ctx.ellipse(-16, -5.5, 3.7, 3.3, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+          ctx.fillStyle = "rgba(252,254,240,.95)";
+          ctx.beginPath();
+          ctx.ellipse(-8.2, -3.5, 2, 4.4, 0, 0, Math.PI * 2);
+          ctx.fill();
+          // 右眼：黑瞳（靠下）+ 白色眼白（靠上）
+          ctx.fillStyle = "#000000";
+          ctx.strokeStyle = C.outline;
+          ctx.lineWidth = 1.2;
+          ctx.beginPath();
+          ctx.ellipse(12, -4.5, 3, 3.7, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+          ctx.fillStyle = "rgba(252,254,240,.95)";
+          ctx.beginPath();
+          ctx.ellipse(9.6, -7.6, 1.4, 2.6, 0, 0, Math.PI * 2);
+          ctx.fill();
+
+          // ===== 嘴巴管（参考图：粗大圆润、上缘高亮、端部深色开口）=====
           const barrels = rep ? 2 : 1;
           for (let b = 0; b < barrels; b++) {
-            const by = b === 0 ? 3 : -12;
+            const by = b === 0 ? -3 : -10.5;
             ctx.save();
-            ctx.translate(13, by);
-            const bg = ctx.createLinearGradient(0, -9, 0, 9);
-            bg.addColorStop(0, C.barrelD);
-            bg.addColorStop(.45, C.barrel);
-            bg.addColorStop(1, C.barrelD);
+            ctx.translate(15, by);
+            const bg = ctx.createLinearGradient(0, -8, 0, 8);
+            bg.addColorStop(0, C.tubeL);
+            bg.addColorStop(.42, C.tube);
+            bg.addColorStop(1, C.tubeD);
             ctx.fillStyle = bg;
-            ctx.strokeStyle = C.headD;
-            ctx.lineWidth = 2.4;
+            ctx.strokeStyle = C.outline;
+            ctx.lineWidth = 2.2;
             ctx.beginPath();
-            ctx.moveTo(0, -9);
-            ctx.quadraticCurveTo(16, -10, 24, -6);
-            ctx.quadraticCurveTo(27, -2, 25, 2);
-            ctx.quadraticCurveTo(21, 10, 0, 9);
+            ctx.moveTo(0, -8);
+            ctx.quadraticCurveTo(14, -9, 22, -7);
+            ctx.quadraticCurveTo(26, -4, 26, 0);
+            ctx.quadraticCurveTo(26, 5, 22, 8);
+            ctx.quadraticCurveTo(13, 8.5, 0, 8);
             ctx.closePath();
             ctx.fill();
             ctx.stroke();
-            // 嘴口（端部开口：外深内黑）
-            ctx.fillStyle = C.barrelD;
+            // 管身上缘高光
+            ctx.strokeStyle = "rgba(255,255,255,.5)";
+            ctx.lineWidth = 1.6;
+            ctx.lineCap = "round";
             ctx.beginPath();
-            ctx.ellipse(24, -2, 4.2, 7.5, .1, 0, Math.PI * 2);
+            ctx.moveTo(4, -6);
+            ctx.quadraticCurveTo(14, -7, 21, -5);
+            ctx.stroke();
+            // 端部开口
+            ctx.fillStyle = C.outline;
+            ctx.beginPath();
+            ctx.ellipse(24.5, 0.5, 2.6, 5.6, 0, 0, Math.PI * 2);
             ctx.fill();
-            ctx.fillStyle = "#1c2a12";
+            ctx.fillStyle = "#102008";
             ctx.beginPath();
-            ctx.ellipse(24.5, -2, 2.6, 5.5, .1, 0, Math.PI * 2);
+            ctx.ellipse(25, 0.5, 1.5, 4, 0, 0, Math.PI * 2);
             ctx.fill();
             ctx.restore();
           }
-
-          // 眼睛：原版大黑眼珠 + 白色高光点
-          ctx.fillStyle = C.eye;
-          ctx.beginPath();
-          ctx.ellipse(-7, -8, 3.6, 5, 0, 0, Math.PI * 2);
-          ctx.ellipse(7.5, -8, 3.6, 5, 0, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.fillStyle = "rgba(255,255,255,.92)";
-          ctx.beginPath();
-          ctx.arc(-7.8, -9.8, 1.3, 0, Math.PI * 2);
-          ctx.arc(6.7, -9.8, 1.3, 0, Math.PI * 2);
-          ctx.fill();
-
-          // 腮红（淡）
-          ctx.fillStyle = "rgba(255,120,90,.16)";
-          ctx.beginPath();
-          ctx.ellipse(-16, 1, 4, 2.6, 0, 0, Math.PI * 2);
-          ctx.ellipse(15, 1, 4, 2.6, 0, 0, Math.PI * 2);
-          ctx.fill();
 
           if (ice) {
             // 冰霜与冰晶
             ctx.fillStyle = "rgba(255,255,255,.85)";
             ctx.beginPath();
-            ctx.arc(-18, -17, 2.2, 0, Math.PI * 2);
-            ctx.arc(13, -20, 2.5, 0, Math.PI * 2);
+            ctx.arc(-19, -12, 2.2, 0, Math.PI * 2);
+            ctx.arc(18, -12, 2.5, 0, Math.PI * 2);
             ctx.fill();
             ctx.strokeStyle = "rgba(255,255,255,.8)";
             ctx.lineWidth = 1.2;
             ctx.lineCap = "round";
             ctx.beginPath();
-            ctx.moveTo(-18, -22); ctx.lineTo(-18, -28);
-            ctx.moveTo(13, -25); ctx.lineTo(13, -32);
-            ctx.moveTo(-22, -25); ctx.lineTo(-14, -25);
-            ctx.moveTo(9, -28); ctx.lineTo(17, -28);
+            ctx.moveTo(-19, -16); ctx.lineTo(-19, -22);
+            ctx.moveTo(18, -16); ctx.lineTo(18, -23);
+            ctx.moveTo(-23, -18); ctx.lineTo(-15, -18);
+            ctx.moveTo(14, -18); ctx.lineTo(22, -18);
             ctx.stroke();
           }
           ctx.restore();
