@@ -802,6 +802,7 @@
       ];
 
       let state = "menu"; // menu | playing | won | lost
+      let demoStudio = false; // 影棚演示模式：?demo=pea 时居中放大展示植物
       let sun = 200;
       let selectedTool = null; // plant id | "shovel" | "energy" | null
       let lastFrame = performance.now();
@@ -1789,6 +1790,18 @@
         const dt = Math.min(dtMs, 50) / 1000;
         elapsed += dt;
         const nowMs = elapsed * 1000;
+
+        // 影棚模式：只播放生长/待机动画，不出怪、不弹窗
+        if (demoStudio) {
+          for (const p of plants) {
+            p.grow = Math.min(1, p.grow + dt * 2.6);
+            p.recoil = Math.max(0, p.recoil - dt * 3);
+            p.boostVisual = Math.max(0, p.boostVisual - dt * 1.5);
+          }
+          updateCooldowns(dtMs);
+          updateCards();
+          return;
+        }
 
         updateCooldowns(dtMs);
 
@@ -2845,96 +2858,142 @@
           const ice = p.type === "snowpea";
           const rep = p.type === "repeater";
           const C = {
-            head: rep ? "#7ac74f" : ice ? "#8fd8ff" : "#6fbf3f",
-            headL: rep ? "#d9f7ae" : ice ? "#e6f9ff" : "#c4ef8d",
-            headD: rep ? "#3f8f32" : ice ? "#2e7f77" : "#2e6f26",
-            stem: rep ? "#5fb03f" : ice ? "#4aa4b9" : "#4f9b3a",
-            stemD: rep ? "#3f8a2e" : ice ? "#2f7e77" : "#2f7d2c",
-            barrel: rep ? "#67b043" : ice ? "#5bc5e2" : "#55a83f",
-            barrelD: rep ? "#4b9637" : ice ? "#2f8ea8" : "#2f7830",
-            eye: ice ? "#0c3f55" : "#173c17"
+            head: rep ? "#7ac74f" : ice ? "#8fd8ff" : "#90c828",
+            headL: rep ? "#d9f7ae" : ice ? "#e6f9ff" : "#d0f060",
+            headD: rep ? "#3f8f32" : ice ? "#2e7f77" : "#005800",
+            stem: rep ? "#5fb03f" : ice ? "#4aa4b9" : "#5f9830",
+            stemD: rep ? "#3f8a2e" : ice ? "#2f7e77" : "#386800",
+            barrel: rep ? "#67b043" : ice ? "#5bc5e2" : "#609800",
+            barrelD: rep ? "#4b9637" : ice ? "#2f8ea8" : "#306000",
+            eye: ice ? "#0c3f55" : "#000000"
           };
-          // 茎（圆柱渐变）
+          // 茎：微曲、带明暗
           const stemG2 = ctx.createLinearGradient(-4, 0, 4, 0);
           stemG2.addColorStop(0, C.stemD);
           stemG2.addColorStop(.5, C.stem);
           stemG2.addColorStop(1, C.stemD);
           ctx.strokeStyle = stemG2;
-          ctx.lineWidth = 9;
+          ctx.lineWidth = 8;
           ctx.lineCap = "round";
           ctx.beginPath();
-          ctx.moveTo(0, 6);
-          ctx.quadraticCurveTo(1, 20, 0, 34);
+          ctx.moveTo(0, 9);
+          ctx.quadraticCurveTo(2, 21, 0, 34);
           ctx.stroke();
-          plantLeaf(-10, 22, -.85, 13, C.stem);
-          plantLeaf(11, 17, .85, 13, C.stem);
+          // 底部三片叶子（左、右、中间下指，参考原版）
+          plantLeaf(-11, 24, -.9, 13, C.stem);
+          plantLeaf(11, 22, .9, 13, C.stem);
+          plantLeaf(0, 29, 1.57, 11, C.stem);
 
           // 头部（带射击后坐）
           ctx.save();
           ctx.translate(-(p.recoil || 0) * 3, 0);
-          ball(0, 0, 22, C.headL, C.head, C.headD, C.headD, 3);
 
-          // 头顶小芽
+          // 头顶单叶（参考图特征：从头顶冒出的小芽）
           ctx.strokeStyle = C.stem;
-          ctx.lineWidth = 3;
+          ctx.lineWidth = 3.4;
           ctx.lineCap = "round";
           ctx.beginPath();
-          ctx.moveTo(0, -19);
-          ctx.quadraticCurveTo(3, -25, 0, -28);
+          ctx.moveTo(1, -19);
+          ctx.quadraticCurveTo(5, -26, 8, -30);
+          ctx.stroke();
+          ctx.fillStyle = C.stem;
+          ctx.strokeStyle = C.stemD;
+          ctx.lineWidth = 1.4;
+          ctx.beginPath();
+          ctx.ellipse(9.5, -31, 5.5, 3.2, .5, 0, Math.PI * 2);
+          ctx.fill();
           ctx.stroke();
 
-          // 枪管（圆柱渐变；双发射手两根）
+          // 经典圆头：正圆 + 粗深绿描边
+          const headG = ctx.createRadialGradient(-7, -8, 4, 0, -1, 25);
+          headG.addColorStop(0, C.headL);
+          headG.addColorStop(.55, C.head);
+          headG.addColorStop(1, C.headD);
+          ctx.fillStyle = headG;
+          ctx.strokeStyle = C.headD;
+          ctx.lineWidth = 3.2;
+          ctx.beginPath();
+          ctx.arc(0, 0, 22, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+          // 下巴阴影
+          ctx.fillStyle = "rgba(0,0,0,.12)";
+          ctx.beginPath();
+          ctx.ellipse(3, 12, 12, 5, .1, 0, Math.PI * 2);
+          ctx.fill();
+          // 左上高光
+          ctx.fillStyle = "rgba(255,255,255,.35)";
+          ctx.beginPath();
+          ctx.ellipse(-9, -11, 6, 4.5, -.5, 0, Math.PI * 2);
+          ctx.fill();
+
+          // 嘴巴式枪管：圆润管身 + 端部开口（原版"嘴"）
           const barrels = rep ? 2 : 1;
           for (let b = 0; b < barrels; b++) {
-            const by = b === 0 ? 6 : -8;
+            const by = b === 0 ? 3 : -12;
             ctx.save();
-            ctx.translate(16, by);
+            ctx.translate(13, by);
             const bg = ctx.createLinearGradient(0, -9, 0, 9);
             bg.addColorStop(0, C.barrelD);
-            bg.addColorStop(.5, C.barrel);
+            bg.addColorStop(.45, C.barrel);
             bg.addColorStop(1, C.barrelD);
             ctx.fillStyle = bg;
             ctx.strokeStyle = C.headD;
-            ctx.lineWidth = 2;
+            ctx.lineWidth = 2.4;
             ctx.beginPath();
             ctx.moveTo(0, -9);
-            ctx.quadraticCurveTo(22, -12, 34, -13);
-            ctx.lineTo(34, 5);
-            ctx.quadraticCurveTo(22, 4, 0, 8);
+            ctx.quadraticCurveTo(16, -10, 24, -6);
+            ctx.quadraticCurveTo(27, -2, 25, 2);
+            ctx.quadraticCurveTo(21, 10, 0, 9);
             ctx.closePath();
             ctx.fill();
             ctx.stroke();
-            // 管口
-            ctx.fillStyle = "rgba(25,40,20,.4)";
+            // 嘴口（端部开口：外深内黑）
+            ctx.fillStyle = C.barrelD;
             ctx.beginPath();
-            ctx.ellipse(33, -4, 3, 7, 0, 0, Math.PI * 2);
+            ctx.ellipse(24, -2, 4.2, 7.5, .1, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = "#1c2a12";
+            ctx.beginPath();
+            ctx.ellipse(24.5, -2, 2.6, 5.5, .1, 0, Math.PI * 2);
             ctx.fill();
             ctx.restore();
           }
 
-          // 眼睛 + 腮红
-          plantFace(-7, -7, 6, -7, 4.2, 8, 6, "happy", "white");
-          ctx.fillStyle = "rgba(255,120,90,.22)";
+          // 眼睛：原版大黑眼珠 + 白色高光点
+          ctx.fillStyle = C.eye;
           ctx.beginPath();
-          ctx.ellipse(-16, 0, 4, 2.6, 0, 0, Math.PI * 2);
-          ctx.ellipse(15, 0, 4, 2.6, 0, 0, Math.PI * 2);
+          ctx.ellipse(-7, -8, 3.6, 5, 0, 0, Math.PI * 2);
+          ctx.ellipse(7.5, -8, 3.6, 5, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = "rgba(255,255,255,.92)";
+          ctx.beginPath();
+          ctx.arc(-7.8, -9.8, 1.3, 0, Math.PI * 2);
+          ctx.arc(6.7, -9.8, 1.3, 0, Math.PI * 2);
+          ctx.fill();
+
+          // 腮红（淡）
+          ctx.fillStyle = "rgba(255,120,90,.16)";
+          ctx.beginPath();
+          ctx.ellipse(-16, 1, 4, 2.6, 0, 0, Math.PI * 2);
+          ctx.ellipse(15, 1, 4, 2.6, 0, 0, Math.PI * 2);
           ctx.fill();
 
           if (ice) {
             // 冰霜与冰晶
             ctx.fillStyle = "rgba(255,255,255,.85)";
             ctx.beginPath();
-            ctx.arc(-18, -16, 2.2, 0, Math.PI * 2);
-            ctx.arc(13, -19, 2.5, 0, Math.PI * 2);
+            ctx.arc(-18, -17, 2.2, 0, Math.PI * 2);
+            ctx.arc(13, -20, 2.5, 0, Math.PI * 2);
             ctx.fill();
             ctx.strokeStyle = "rgba(255,255,255,.8)";
             ctx.lineWidth = 1.2;
             ctx.lineCap = "round";
             ctx.beginPath();
-            ctx.moveTo(-18, -21); ctx.lineTo(-18, -27);
-            ctx.moveTo(13, -24); ctx.lineTo(13, -31);
-            ctx.moveTo(-22, -24); ctx.lineTo(-14, -24);
-            ctx.moveTo(9, -27); ctx.lineTo(17, -27);
+            ctx.moveTo(-18, -22); ctx.lineTo(-18, -28);
+            ctx.moveTo(13, -25); ctx.lineTo(13, -32);
+            ctx.moveTo(-22, -25); ctx.lineTo(-14, -25);
+            ctx.moveTo(9, -28); ctx.lineTo(17, -28);
             ctx.stroke();
           }
           ctx.restore();
@@ -3933,6 +3992,30 @@
       }
 
       function render() {
+        // 影棚模式：素色背景 + 居中放大展示第一株植物
+        if (demoStudio) {
+          const bgG = ctx.createLinearGradient(0, 0, 0, GAME_H);
+          bgG.addColorStop(0, "#f4f7ee");
+          bgG.addColorStop(1, "#e2ebd8");
+          ctx.fillStyle = bgG;
+          ctx.fillRect(0, 0, GAME_W, GAME_H);
+          const p = plants[0];
+          if (p) {
+            const ox = p.x, oy = p.y, orow = p.row;
+            ctx.save();
+            ctx.translate(GAME_W / 2, GAME_H / 2 + 40);
+            ctx.scale(2.8, 2.8);
+            p.x = 0;
+            p.y = -34;
+            p.row = 2;
+            drawPlant(p);
+            p.x = ox;
+            p.y = oy;
+            p.row = orow;
+            ctx.restore();
+          }
+          return;
+        }
         drawLawn();
         // 画家算法：按行深度排序，近处后绘制（遮挡远处）
         const sortedPlants = [...plants].sort((a, b) => a.row - b.row);
@@ -3982,6 +4065,39 @@
       updateToolButtons();
       updateMusicButton();
       fitViewport();
+
+      // 演示模式（仅用于截图/预览）：?demo=pea 影棚特写豌豆射手；?demo 常规开局种豌豆
+      if (/[?&]demo/.test(location.search)) {
+        demoStudio = /demo=pea/.test(location.search);
+        if (demoStudio) {
+          const tb = document.querySelector(".topbar");
+          if (tb) tb.style.display = "none";
+          const shellEl = document.querySelector(".game-shell");
+          if (shellEl) {
+            shellEl.style.border = "0";
+            shellEl.style.background = "transparent";
+            shellEl.style.borderRadius = "0";
+            shellEl.style.boxShadow = "none";
+            shellEl.style.width = "100%";
+          }
+          const wrapEl = document.querySelector(".canvas-wrap");
+          if (wrapEl) {
+            wrapEl.style.padding = "0";
+            wrapEl.style.background = "#eef3e6";
+          }
+          document.body.style.padding = "0";
+          document.body.style.background = "#eef3e6";
+          state = "playing";
+          startOverlay.classList.add("hidden");
+          endOverlay.classList.add("hidden");
+          spawnPlant("peashooter", 2, 4);
+          lastFrame = performance.now();
+          requestAnimationFrame(loop);
+        } else {
+          startGame();
+          spawnPlant("peashooter", 2, 4);
+        }
+      }
 
       canvas.addEventListener("click", handleBoardClick);
       canvas.addEventListener("contextmenu", e => {
